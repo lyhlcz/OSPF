@@ -1,5 +1,3 @@
-import multiprocessing as mp
-
 
 class ROUTER:
     def __init__(self, i, neighbors):
