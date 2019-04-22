@@ -18,7 +18,7 @@ class ForkingClient:
     def run(self):
         current_process_id = os.getpid()
         print('PID %s Sending echo message to the server:"%s"' % (current_process_id, ECHO_MSG))
-        sent_data_length = self.sock.send(ECHO_MSG)
+        sent_data_length = self.sock.send(bytes(ECHO_MSG, encoding="utf-8"))
         print("Sent : %d characters,so far..." % sent_data_length)
         response = self.sock.recv(BUF_SIZE)
         print("PID %s received: %s" % (current_process_id, response))
@@ -33,7 +33,7 @@ class ForkingServerRequestHandler(sks.BaseRequestHandler):
         current_process_id = os.getpid()
         response = '%s: %s' % (current_process_id, data)
         print("Server sending response : %s" % response)
-        self.request.send(response)
+        self.request.send(bytes(response, encoding="utf-8"))
         return
 
 
@@ -47,11 +47,16 @@ if __name__ == '__main__':
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
     print('Server loop running PID: %s ' % os.getpid())
+
     client1 = ForkingClient(ip, port)
     client1.run()
+    print("2", os.getpid())
     client2 = ForkingClient(ip, port)
     client2.run()
+    print("3", os.getpid())
+
     server.shutdown()
     client1.shutdown()
     client2.shutdown()
+
     server.socket.close()

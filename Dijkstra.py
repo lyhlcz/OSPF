@@ -45,7 +45,7 @@ class GRAPH:
                     if tmp < cost[j]:
                         cost[j] = tmp
                         last[j] = k
-        return
+        return cost, last, flag
 
 
 if __name__ == "__main__":
@@ -58,3 +58,4 @@ if __name__ == "__main__":
         [INF,   2,   4, INF, INF,  INF]
     ]))
     G.DJ(0)
+    #print(G.DJ(0))

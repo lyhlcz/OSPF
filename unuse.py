@@ -1,6 +1,8 @@
 from tkinter import *
 import time
 from tkinter import scrolledtext
+from network import *
+from router import *
 
 
 LOG_LINE_NUM = 0
@@ -9,6 +11,7 @@ LOG_LINE_NUM = 0
 class MY_GUI:
     def __init__(self,init_window_name):
         self.init_window_name = init_window_name
+        self.n = network_server()
 
     # 设置窗口
     def set_init_window(self):
@@ -29,6 +32,15 @@ class MY_GUI:
                 self.edge_labels = self.edge_labels + [Label(self.init_window_name, text=chr(65+i) + chr(65+j))]
         for i in range(10):
             self.edge_labels[i].grid(row=16+i*5, column=120)
+        '''
+        self.init_data_label = Label(self.init_window_name, text="router1")
+        self.init_data_label.grid(row=0, column=0)
+        self.mid_data_label = Label(self.init_window_name, text="router2")
+        self.mid_data_label.grid(row=0, column=12)
+        self.result_data_label = Label(self.init_window_name, text="router3")
+        self.result_data_label.grid(row=0, column=56)
+        self.log_label = Label(self.init_window_name, text="router4")
+        self.log_label.grid(row=12, column=0)'''
 
         # 文本框
         self.router_Texts = []
@@ -128,15 +140,15 @@ class MY_GUI:
 class router_GUI:
     def __init__(self, init_window_name, routerID):
         self.init_window_name = init_window_name
-        self.rid = routerID
+        self.r = ROUTER(routerID, [])
 
     def set_init_window(self):
-        self.init_window_name.title('Router' + str(self.rid))           # 窗口名
+        self.init_window_name.title('Router' + str(self.r.ID))           # 窗口名
         self.init_window_name.geometry('450x750+10+10')
 
         self.table_data_Text = scrolledtext.ScrolledText(self.init_window_name, width=60, height=35)
         self.table_data_Text.grid(row=0, column=0)
-        self.table_data_Text.insert(1.0, self.rid)
+        self.table_data_Text.insert(1.0, self.r.conTable)
 
 
 if __name__ == "__main__":
