@@ -1,6 +1,8 @@
 import socket as sk
 import os
-from GUI import *
+from tkinter import *
+import time
+from tkinter import scrolledtext
 
 INF = 9999
 
@@ -33,6 +35,20 @@ def bytesToTable(bytes_data):
     return i, table
 
 
+class router_GUI:
+    def __init__(self, init_window_name, routerID, conTable):
+        self.init_window_name = init_window_name
+        self.rid = routerID
+        self.conTable = conTable
+
+    def set_init_window(self):
+        self.init_window_name.title('Router' + str(self.rid))           # 窗口名
+        self.init_window_name.geometry('380x500+'+str((self.rid-1)*380)+'+10')
+
+        self.table_data_Text = scrolledtext.ScrolledText(self.init_window_name, width=50, height=35)
+        self.table_data_Text.grid(row=0, column=0)
+        self.table_data_Text.insert(1.0, self.conTable)
+
 class ROUTER:
     def __init__(self, i, neighbor):
         self.ID = i
@@ -44,9 +60,8 @@ class ROUTER:
 
         self.gui_id = os.fork()
         if self.gui_id == 0:
-            print('gui')
             router_window = Tk()
-            PORTAL = router_GUI(router_window, i)
+            PORTAL = router_GUI(router_window, i, self.conTable)
             PORTAL.set_init_window()
             router_window.mainloop()
 
@@ -54,6 +69,14 @@ class ROUTER:
         self.port = 10080 + i
         self.s = sk.socket()
 
+        # 持续连接直到连接成功
+        while self.s.connect_ex((host, port)) != 0:
+            pass
+        print(str(self.ID), 'connecting success')
+        #print('client: ', str(self.ID), str(self.s.recv(1024), 'utf-8'))
+        self.conTable = str(self.s.recv(1024))
+        self.updateGUI()
+        #self.s.send(bytes('it\'s'+str(self.ID), encoding="utf-8"))
 
     # 接收路由表(更新试探表)
     def recTable(self, message):
@@ -111,9 +134,8 @@ class ROUTER:
         os.kill(self.gui_id, 9)
         self.gui_id = os.fork()
         if self.gui_id == 0:
-            print('gui')
             router_window = Tk()
-            PORTAL = router_GUI(router_window, self.ID)
+            PORTAL = router_GUI(router_window, self.ID, self.conTable)
             PORTAL.set_init_window()
             router_window.mainloop()
 
@@ -126,7 +148,9 @@ class ROUTER:
         print()
 
     def run(self):
-        pass
+        while True:
+            pass
+
 
 
 if __name__ == '__main__':

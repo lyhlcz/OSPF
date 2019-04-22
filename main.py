@@ -1,4 +1,5 @@
 from router import *
+from network import *
 import os
 
 
@@ -28,7 +29,4 @@ if __name__ == '__main__':
 
     if fpid == os.getpid():
         print(cpids)
-        init_window = Tk()
-        ZMJ_PORTAL = MY_GUI(init_window)
-        ZMJ_PORTAL.set_init_window()
-        init_window.mainloop()
+        n = network_server(cpids)
