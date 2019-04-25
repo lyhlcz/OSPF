@@ -152,6 +152,7 @@ class network_server:
 
         # for i in range(5):
         #     print(str(self.cls[i].recv(1024), 'utf-8'))
+
+    def run(self):
         while True:
             pass
-
