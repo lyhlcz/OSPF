@@ -143,16 +143,27 @@ class network_server:
         self.s.bind((host, port))   #绑定端口
 
         self.s.listen(5)
-        self.cls = []
+        self.cls = [None, None, None, None, None]
         for i in range(5):
             c, addr = self.s.accept()
-            print('client:', addr)
-            self.cls = self.cls + [c]
-            c.send(bytes('hello！', encoding="utf-8"))
+            #print('client:', addr)
+            self.cls[int(addr[1])-10001] = c
+            #c.send(bytes('hello！', encoding="utf-8"))
 
-        # for i in range(5):
-        #     print(str(self.cls[i].recv(1024), 'utf-8'))
 
     def run(self):
+        buff = ['', '', '', '', '']
         while True:
-            pass
+            for i in range(5):
+                data_groups = str(self.cls[i].recv(1024), 'utf-8').split('$')
+                print(data_groups)
+                for data in data_groups:
+                    aim = int(data[0])-1
+                    if aim == -1:
+                        continue
+                    buff[aim] = '$'+data
+
+            for i in range(5):
+                if buff[i] is not '':
+                    buff[i] = buff[i][1:]   # 去掉第一个‘$’
+                    self.cls[i].send(bytes(buff[i], encoding='utf-8'))

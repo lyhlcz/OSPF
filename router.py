@@ -14,7 +14,7 @@ INF = 9999
 host = sk.gethostname()     # 主机名
 port = 8888                 # 端口号
 
-time_size = 10   # 刷新时间间隔，单位秒
+time_size = 2  # 刷新时间间隔，单位秒
 
 img = None
 im = None
@@ -33,9 +33,14 @@ def tableToBytes(i, table):
 
 def bytesToTable(bytes_data):
     table = []
-    str_data = str(bytes_data, encoding='utf-8')
-    i = str_data.split('|')[0]
-    str_data = str_data.split('|')[1]
+    str_data = str(bytes_data, encoding='utf-8').split()
+    i = str_data[0]
+
+    # 无数据
+    if len(str_data) == 0:
+        return i, []
+
+    str_data = str_data[1]
     lines = str_data.split(';')[:-1]
     for l in lines:
         tmp = l.split(' ')[:-1]
@@ -81,10 +86,9 @@ class router_GUI:
         plt.savefig('./tree'+str(self.rid)+'.png')
         img = Image.open('./tree'+str(self.rid)+'.png')
         w, h = img.size
-        print(w, h)
-        im = ImageTk.PhotoImage(resize(w, h, 360, 200, img))
-        self.pic = Canvas(self.init_window_name, width=360, height=300)
-        self.pic.create_image(150, 150, image=im)
+        im = ImageTk.PhotoImage(resize(w, h, 380, 300, img))
+        self.pic = Canvas(self.init_window_name, width=380, height=300)
+        self.pic.create_image(190, 150, image=im)
         # img.close()
 
         self.pic.grid(row=1, column=0)
@@ -108,14 +112,22 @@ class ROUTER:
             router_window.mainloop()
 
         self.router_name = str(i)
-        self.port = 10080 + i
+        self.port = 10000 + i
+        '''
         self.s = sk.socket()
+        self.cls = []
+        for ng in self.neighbor: 
+            while self.s.connect_ex()
+        '''
+        self.s = sk.socket()
+        self.s.bind((self.router_name, self.port))
 
         # 持续连接直到连接成功
         while self.s.connect_ex((host, port)) != 0:
             pass
         print(str(self.ID), 'connecting success')
 
+    '''
     # 接收路由表(更新试探表)
     def recTable(self, message):
         rid, table_data = bytesToTable(message)
@@ -135,15 +147,45 @@ class ROUTER:
 
         self.testTable = self.testTable + table_data
         return 0
+    '''
 
-    def test(self):
-        self.s.connect((host, port))
-        self.s.send(bytes('it\'s router'+str(self.ID), encoding='utf-8'))
-        self.s.close()
+    # 接收拓扑数据
+    def recTable(self):
+        #print(self.router_name+'    ',self.neighbor == [])
+        if self.neighbor == []:
+            print(self.router_name)
+            return
+        message_data = self.s.recv(1024)
+        print(str(message_data, 'utf-8'))
+        messages = message_data.split(b'$')
+        for message in messages:
+            #print(self.router_name, ' message:  ', str(message, 'utf-8'))
+            rid, table_data = bytesToTable(message)
+            tts = self.topoTable
+            for t in table_data:
+                flag = 0
+                for tt in tts:
+                    if t[2] != tt[2]:
+                        continue
+                    if t[0] == tt[0] and t[1] == tt[1]:
+                        flag = 1
+                        break
+                    if t[0] == tt[1] and t[0] == tt[1]:
+                        flag = 1
+                        break
+                # 若本地数据没有该项，添加该项
+                if flag == 0:
+                    self.topoTable.append(t)
 
     # 发送拓扑数据库
     def sendTable(self):
-        bytes_data  = tableToBytes(self.ID, self.conTable)
+        if self.neighbor == []:
+            self.s.send(tableToBytes(0, self.topoTable))
+            return []
+        bytes_data = bytes('', encoding='utf-8')
+        for ng in self.neighbor:
+            bytes_data  = bytes_data + bytes('$', encoding='utf-8') + tableToBytes(ng, self.topoTable)
+        self.s.send(bytes_data[1:])
         return bytes_data
 
     # 更新证实表
@@ -191,7 +233,10 @@ class ROUTER:
             time.sleep(time_size)
 
             # 交换路由数据
-
+            self.sendTable()
+            print(self.router_name+'   send over')
+            self.recTable()
+            print(self.router_name+'   rec over')
 
             # 更新数据
 

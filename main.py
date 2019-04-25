@@ -43,7 +43,7 @@ if __name__ == '__main__':
                 cpids = cpids + [pid]
 
     if fpid == os.getpid():
-        print(cpids)
+        # print(cpids)
         n = network_server(cpids)
         n.run()
 
