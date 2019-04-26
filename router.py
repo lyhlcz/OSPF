@@ -13,12 +13,13 @@ import numpy as np
 host = sk.gethostname()     # 主机名
 port = 8888                 # 端口号
 
-time_size = 2  # 刷新时间间隔，单位秒
+time_size = 10  # 刷新时间间隔，单位秒
 
 img = None
 im = None
 
 
+# 列表数据转化比特
 def tableToBytes(i, table):
     str_data = str(i) + '|'
     for l in table:
@@ -31,6 +32,7 @@ def tableToBytes(i, table):
     return bytes(str_data, encoding='utf-8')
 
 
+# 比特数据转化列表
 def bytesToTable(bytes_data):
     table = []
     str_data = str(bytes_data, encoding='utf-8').split('|')
@@ -50,6 +52,7 @@ def bytesToTable(bytes_data):
     return i, table
 
 
+# 修改图片尺寸
 def resize(w, h, w_box, h_box, pil_image):
     f1 = 1.0 * w_box / w
     f2 = 1.0 * h_box / h
@@ -71,27 +74,42 @@ class router_GUI:
         self.init_window_name.title('Router' + str(self.rid))           # 窗口名
         self.init_window_name.geometry('380x800+'+str((self.rid-1)*380)+'+10')
 
-        self.table_data_Text = scrolledtext.ScrolledText(self.init_window_name, width=50, height=35)
+        # 拓扑数据表
+        self.table_data_Text = scrolledtext.ScrolledText(self.init_window_name, width=50, height=10)
         self.table_data_Text.grid(row=0, column=0)
-        self.table_data_Text.insert(1.0, '拓扑表'+str(self.rdata[0])+'\n证实表'+str(self.rdata[1])+'\n试探表'+str(self.rdata[2]))
+        for t in self.rdata[0]:
+            self.table_data_Text.insert(1.0, str(t[0])+'\t'+str(t[1])+'\t'+str(t[2])+'\n')
+        self.table_data_Text.insert(1.0, 'node1\tnode2\tcost\n')
+        #self.table_data_Text.insert(1.0, '拓扑表'+str(self.rdata[0])+'\n证实表'+str(self.rdata[1])+'\n试探表'+str(self.rdata[2]))
 
+        # 路由表
+        self.table_data_Text1 = scrolledtext.ScrolledText(self.init_window_name, width=50, height=10)
+        self.table_data_Text1.grid(row=1, column=0)
+        for t in self.rdata[1]:
+            self.table_data_Text1.insert(1.0, str(t[0])+'\t'+str(t[1])+'\t'+str(t[2])+'\n')
+        self.table_data_Text1.insert(1.0, 'node\tcost\tnext\n')
+
+        # 更新过程信息
+        self.table_data_Text2 = scrolledtext.ScrolledText(self.init_window_name, width=50, height=15)
+        self.table_data_Text2.grid(row=2, column=0)
+        self.table_data_Text2.insert(1.0, self.rdata[2])
+
+        # 绘制生成树
         g = nx.Graph()
         g.clear()
-        g.add_edge('A', 'B')
-        g.add_edge('A', 'C')
-        g.add_edge('C', 'B')
-        g.add_edge('D', 'B')
-        g.add_edge('C', 'D')
-        nx.draw(g)
+        g.add_node(self.rid)
+        for i, e in enumerate(self.rdata[-1]):
+            if e < 0:
+                continue
+            g.add_edge(i+1, e+1)
+        nx.draw(g, with_labels=True, font_size=30, node_size=1500)
         plt.savefig('./tree'+str(self.rid)+'.png')
         img = Image.open('./tree'+str(self.rid)+'.png')
         w, h = img.size
         im = ImageTk.PhotoImage(resize(w, h, 380, 300, img))
         self.pic = Canvas(self.init_window_name, width=380, height=300)
         self.pic.create_image(190, 150, image=im)
-        # img.close()
-
-        self.pic.grid(row=1, column=0)
+        self.pic.grid(row=3, column=0)
 
 
 class ROUTER:
@@ -99,26 +117,25 @@ class ROUTER:
         self.ID = i
         self.neighbor = neighbor        # 邻居表
         self.topoTable = neighbor_cost  # 拓扑表: [起点号， 终点号， 花费]
-        self.conTable = [[i, 0, -1]]    # 证实表: [目的地, 花费, 下一跳]
+        self.conTable = []              # 证实表: [目的地, 花费, 下一跳]
         self.testTable = []             # 试探表: [目的地, 花费, 下一跳]
         self.flag = -1                  # 是否已初始化链路状态
-        # print(i, neighbor, neighbor_cost)
+        self.router_name = str(i)
+        self.port = 10000 + i
+
+        self.log = ''
+        self.updateTable()
+        self.treeData = -np.ones([1, 5], dtype=int)[0]
+        for n in neighbor:
+            self.treeData[n-1] = i - 1
 
         self.gui_id = os.fork()
         if self.gui_id == 0:
             router_window = Tk()
-            PORTAL = router_GUI(router_window, i, [self.topoTable, self.conTable, self.testTable])
+            PORTAL = router_GUI(router_window, i, [self.topoTable, self.conTable, self.log, self.treeData])
             PORTAL.set_init_window()
             router_window.mainloop()
 
-        self.router_name = str(i)
-        self.port = 10000 + i
-        '''
-        self.s = sk.socket()
-        self.cls = []
-        for ng in self.neighbor: 
-            while self.s.connect_ex()
-        '''
         self.s = sk.socket()
         self.s.bind((self.router_name, self.port))
 
@@ -179,7 +196,7 @@ class ROUTER:
         messages = message_data.split(b'$')
         # print(messages)
 
-        #更新拓扑数据库
+        # 更新拓扑数据库
         for message in messages:
             # print(self.router_name, ' message:  ', str(message, 'utf-8'))
             rid, table_data = bytesToTable(message)
@@ -206,14 +223,14 @@ class ROUTER:
             return []
         bytes_data = bytes('', encoding='utf-8')
         for ng in self.neighbor:
-            bytes_data  = bytes_data + bytes('$', encoding='utf-8') + tableToBytes(ng, self.topoTable)
+            bytes_data = bytes_data + bytes('$', encoding='utf-8') + tableToBytes(ng, self.topoTable)
         self.s.send(bytes_data[1:])
         return bytes_data
 
     # 更新最短路径树和路由表
     def updateTable(self):
         # 根据拓扑数据建立邻接矩阵
-        G_Matrix = np.ones([5, 5]) * INF
+        G_Matrix = np.ones([5, 5], dtype=int) * INF
         for t in self.topoTable:
             i = t[0] - 1
             j = t[1] - 1
@@ -221,10 +238,19 @@ class ROUTER:
             G_Matrix[j][i] = t[2]
         # print(G_Matrix)
 
-        # 求最短路径
-        G = GRAPH(G_Matrix)
-        print(G.DJ(int(self.router_name)-1))
-        time.sleep(100000000)
+        # 求最短路径并更新路由信息
+        GM = GRAPH(G_Matrix)
+        cost, self.treeData, flag , self.log= GM.DJ(int(self.router_name)-1)
+        self.conTable = [[self.ID, 0, -1]]
+        for i, c in enumerate(cost):
+            if c != INF:
+                j = i
+                while self.treeData[j] != self.ID - 1:
+                    j = self.treeData[j]
+                tmp = [i+1, c, j+1]
+                self.conTable.append(tmp)
+
+        # time.sleep(100000000)
         return
 
     # 刷新显示数据
@@ -233,7 +259,7 @@ class ROUTER:
         self.gui_id = os.fork()
         if self.gui_id == 0:
             router_window = Tk()
-            PORTAL = router_GUI(router_window, self.ID, [self.topoTable, self.conTable, self.testTable])
+            PORTAL = router_GUI(router_window, self.ID, [self.topoTable, self.conTable, self.log, self.treeData])
             PORTAL.set_init_window()
             router_window.mainloop()
 

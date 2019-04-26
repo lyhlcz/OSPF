@@ -13,11 +13,12 @@ class GRAPH:
 
     def DJ(self, I):
         # 初始化辅助数组
-        last = -np.ones([1, self.N])[0]
-        cost = np.zeros([1, self.N])[0]
-        flag = np.zeros([1, self.N])[0]
+        last = -np.ones([1, self.N], dtype=int)[0]
+        cost = np.zeros([1, self.N], dtype=int)[0]
+        flag = np.zeros([1, self.N], dtype=int)[0]
 
         # 初始化
+        message = ''
         flag[I] = 1
         for i in range(self.N):
             if self.G[I][i] != INF:
@@ -28,7 +29,7 @@ class GRAPH:
 
         k = I
         for i in range(self.N-1):
-            #print(cost, " ", last, " ", flag)
+            # print(cost, " ", last, " ", flag)
             # 求下一个结点
             min_cost = INF
             for j in range(self.N):
@@ -37,16 +38,21 @@ class GRAPH:
                     k = j
             flag[k] = 1
 
-            #print(str(k)+'->')
+            if min_cost == INF:
+                break
+            # print(str(k)+'->')
+            message = message + 'found router' + str(k+1) + ', cost is ' + str(min_cost) + '\n'
 
             # 更新cost
             for j in range(self.N):
                 if flag[j] == 0:
                     tmp = cost[k] + self.G[k][j]
                     if tmp < cost[j]:
+                        message = message+'update the cost to router '+str(j+1)+' from '+str(cost[j])+' to '+str(tmp)+'\n'
                         cost[j] = tmp
                         last[j] = k
-        return cost, last, flag
+
+        return cost, last, flag, message
 
 
 if __name__ == "__main__":
@@ -58,5 +64,5 @@ if __name__ == "__main__":
         [  4, INF, INF,   2, INF,  INF],
         [INF,   2,   4, INF, INF,  INF]
     ]))
-    G.DJ(0)
-    #print(G.DJ(0))
+    cost, last, flag, message = G.DJ(0)
+    print(message)

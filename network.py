@@ -136,8 +136,7 @@ class network_server:
         ZMJ_PORTAL.set_init_window()
         # init_window.mainloop()
 
-        # socket test
-
+        # socket connect test
         self.s = sk.socket()
         self.s.setsockopt(sk.SOL_SOCKET, sk.SO_REUSEADDR, 1)
         self.s.bind((host, port))   #绑定端口
