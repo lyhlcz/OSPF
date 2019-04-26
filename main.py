@@ -33,41 +33,51 @@ class input_GUI():
             if cost == '':
                 cost = '999'
             self.data.append(int(cost))
-        self.root.destroy()
-        time.sleep(100000)
+        print(self.data)
+        s = sk.socket()
+        while s.connect_ex((sk.gethostname(), 6000)) != 0:
+            pass
+        s.send(bytes(str(self.data)[1:-1], encoding='utf-8'))
+        s.close()
 
     def run(self):
         self.root.mainloop()
-        if self.flag == 0:
-            return None
-        else:
-            G = np.zeros([5, 5], dtype=int)
-            index = 0
-            for i in range(5):
-                for j in range(i + 1, 5):
-                    G[i][j] = self.data[index]
-                    G[j][i] = self.data[index]
-                    index = index + 1
-        return G
 
 
 if __name__ == '__main__':
+    pid = os.fork()
+    if pid == 0:
+        # 输入网络拓扑数据
+        win = input_GUI()
+        win.run()
+        exit(0)
+
+    s = sk.socket()
+    s.bind((sk.gethostname(), 6000))
+    s.listen(5)
+    c, _ = s.accept()
+    data = str(c.recv(1024), 'utf=8').split(',')
+    os.kill(pid, 9)
+
     # 初始化路由数据
+    data = [int(x) for x in data]
+    G = np.zeros([5, 5], dtype=int)
+    index = 0
+    for i in range(5):
+        for j in range(i + 1, 5):
+            G[i][j] = data[index]
+            G[j][i] = data[index]
+            index = index + 1
+    # print(G)
     N = 5
+    '''
     G = [
         [0, 5, 10, INF, INF],
         [5, 0, 3, 11, INF],
         [10, 3, 0, 2, INF],
         [INF, 11, 2, 0, INF],
         [INF, INF, INF, INF, 0]
-    ]
-    win = input_GUI()
-    G = win.run()
-    print(G)
-    if G is None:
-        exit(0)
-    #time.sleep(1000000)
-    #exit(0)
+    ]'''
 
     neighbors = []
     neighbors_cost = []

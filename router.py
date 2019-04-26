@@ -13,7 +13,7 @@ import numpy as np
 host = sk.gethostname()     # 主机名
 port = 8888                 # 端口号
 
-time_size = 10  # 刷新时间间隔，单位秒
+time_size = 2  # 刷新时间间隔，单位秒
 
 img = None
 im = None
@@ -143,49 +143,6 @@ class ROUTER:
         while self.s.connect_ex((host, port)) != 0:
             pass
         print(str(self.ID), 'connecting success')
-
-    '''
-    # 接收路由表(更新试探表)
-    def recTable(self, message):
-        rid, table_data = bytesToTable(message)
-        if rid != self.flag and self.flag != -1:
-            return -1
-        tmp = [x[0] for x in self.testTable]
-        tmp2 = [x[0] for x in self.conTable]
-
-        for i, t in enumerate(table_data):
-            if t[0] in tmp:
-                j = tmp.index(t[0])
-                if self.testTable[j][1] > t[1]:
-                    self.testTable[j] = t
-                del(table_data[i])
-            elif t[0] in tmp2:
-                del(table_data[i])
-
-        self.testTable = self.testTable + table_data
-        return 0
-        
-    # 更新证实表
-    def updateTable(self):
-        # 找最小费用
-        min_cost = INF
-        k = -1
-        for i, c in enumerate(self.testTable):
-            if c[1] < min_cost:
-                min_cost = c[1]
-                k = i
-        # print('k = ', k, '  min = ', min_cost)
-        if k < 0:
-            print('error')
-            exit(1)
-        else:
-            self.conTable = self.conTable + [self.testTable[k]]
-            self.flag = self.testTable[k][0]    # 更新结点
-            del(self.testTable[k])
-
-        # self.testTable = []
-        return
-    '''
 
     # 接收拓扑数据
     def recTable(self):
