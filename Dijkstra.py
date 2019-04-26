@@ -26,8 +26,9 @@ class GRAPH:
             else:
                 cost[i] = INF
 
+        k = I
         for i in range(self.N-1):
-            print(cost, " ", last, " ", flag)
+            #print(cost, " ", last, " ", flag)
             # 求下一个结点
             min_cost = INF
             for j in range(self.N):
@@ -36,7 +37,7 @@ class GRAPH:
                     k = j
             flag[k] = 1
 
-            print(str(k)+'->')
+            #print(str(k)+'->')
 
             # 更新cost
             for j in range(self.N):

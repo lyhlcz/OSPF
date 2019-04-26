@@ -152,18 +152,20 @@ class network_server:
 
 
     def run(self):
-        buff = ['', '', '', '', '']
         while True:
+            buff = ['', '', '', '', '']
             for i in range(5):
                 data_groups = str(self.cls[i].recv(1024), 'utf-8').split('$')
-                print(data_groups)
+                #print(data_groups)
                 for data in data_groups:
                     aim = int(data[0])-1
                     if aim == -1:
                         continue
-                    buff[aim] = '$'+data
+                    buff[aim] = buff[aim] + '$' + data
 
             for i in range(5):
                 if buff[i] is not '':
                     buff[i] = buff[i][1:]   # 去掉第一个‘$’
+                    #print(buff[i])
                     self.cls[i].send(bytes(buff[i], encoding='utf-8'))
+            #break

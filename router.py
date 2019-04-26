@@ -6,10 +6,9 @@ from tkinter import scrolledtext
 import networkx as nx
 import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
-import imageio
+from Dijkstra import *
+import numpy as np
 
-
-INF = 9999
 
 host = sk.gethostname()     # 主机名
 port = 8888                 # 端口号
@@ -18,6 +17,7 @@ time_size = 2  # 刷新时间间隔，单位秒
 
 img = None
 im = None
+
 
 def tableToBytes(i, table):
     str_data = str(i) + '|'
@@ -33,7 +33,7 @@ def tableToBytes(i, table):
 
 def bytesToTable(bytes_data):
     table = []
-    str_data = str(bytes_data, encoding='utf-8').split()
+    str_data = str(bytes_data, encoding='utf-8').split('|')
     i = str_data[0]
 
     # 无数据
@@ -147,19 +147,41 @@ class ROUTER:
 
         self.testTable = self.testTable + table_data
         return 0
+        
+    # 更新证实表
+    def updateTable(self):
+        # 找最小费用
+        min_cost = INF
+        k = -1
+        for i, c in enumerate(self.testTable):
+            if c[1] < min_cost:
+                min_cost = c[1]
+                k = i
+        # print('k = ', k, '  min = ', min_cost)
+        if k < 0:
+            print('error')
+            exit(1)
+        else:
+            self.conTable = self.conTable + [self.testTable[k]]
+            self.flag = self.testTable[k][0]    # 更新结点
+            del(self.testTable[k])
+
+        # self.testTable = []
+        return
     '''
 
     # 接收拓扑数据
     def recTable(self):
-        #print(self.router_name+'    ',self.neighbor == [])
         if self.neighbor == []:
-            print(self.router_name)
             return
         message_data = self.s.recv(1024)
-        print(str(message_data, 'utf-8'))
+        # print(str(message_data, 'utf-8'))
         messages = message_data.split(b'$')
+        # print(messages)
+
+        #更新拓扑数据库
         for message in messages:
-            #print(self.router_name, ' message:  ', str(message, 'utf-8'))
+            # print(self.router_name, ' message:  ', str(message, 'utf-8'))
             rid, table_data = bytesToTable(message)
             tts = self.topoTable
             for t in table_data:
@@ -188,25 +210,21 @@ class ROUTER:
         self.s.send(bytes_data[1:])
         return bytes_data
 
-    # 更新证实表
+    # 更新最短路径树和路由表
     def updateTable(self):
-        # 找最小费用
-        min_cost = INF
-        k = -1
-        for i, c in enumerate(self.testTable):
-            if c[1] < min_cost:
-                min_cost = c[1]
-                k = i
-        # print('k = ', k, '  min = ', min_cost)
-        if k < 0:
-            print('error')
-            exit(1)
-        else:
-            self.conTable = self.conTable + [self.testTable[k]]
-            self.flag = self.testTable[k][0]    # 更新结点
-            del(self.testTable[k])
+        # 根据拓扑数据建立邻接矩阵
+        G_Matrix = np.ones([5, 5]) * INF
+        for t in self.topoTable:
+            i = t[0] - 1
+            j = t[1] - 1
+            G_Matrix[i][j] = t[2]
+            G_Matrix[j][i] = t[2]
+        # print(G_Matrix)
 
-        # self.testTable = []
+        # 求最短路径
+        G = GRAPH(G_Matrix)
+        print(G.DJ(int(self.router_name)-1))
+        time.sleep(100000000)
         return
 
     # 刷新显示数据
@@ -234,12 +252,12 @@ class ROUTER:
 
             # 交换路由数据
             self.sendTable()
-            print(self.router_name+'   send over')
+            # print(self.router_name+'   send over')
             self.recTable()
-            print(self.router_name+'   rec over')
+            # print(self.router_name+'   rec over')
 
             # 更新数据
-
+            self.updateTable()
 
             # 刷新界面
             self.updateGUI()
