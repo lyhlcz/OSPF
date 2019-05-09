@@ -13,7 +13,7 @@ import numpy as np
 host = sk.gethostname()     # 主机名
 port = 8888                 # 端口号
 
-time_size = 2  # 刷新时间间隔，单位秒
+time_size = 20  # 刷新时间间隔，单位秒
 
 img = None
 im = None
@@ -71,7 +71,7 @@ class router_GUI:
     def set_init_window(self):
         global img, im
 
-        self.init_window_name.title('Router' + str(self.rid))           # 窗口名
+        self.init_window_name.title('Router' + chr(self.rid+64))           # 窗口名
         self.init_window_name.geometry('380x800+'+str((self.rid-1)*380)+'+10')
 
         # 拓扑数据表
@@ -97,11 +97,11 @@ class router_GUI:
         # 绘制生成树
         g = nx.Graph()
         g.clear()
-        g.add_node(self.rid)
+        g.add_node(chr(64+self.rid))
         for i, e in enumerate(self.rdata[-1]):
             if e < 0:
                 continue
-            g.add_edge(i+1, e+1)
+            g.add_edge(chr(i+65), chr(e+65))
         nx.draw(g, with_labels=True, font_size=30, node_size=1500)
         plt.savefig('./tree'+str(self.rid)+'.png')
         img = Image.open('./tree'+str(self.rid)+'.png')

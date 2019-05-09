@@ -3,6 +3,7 @@ from network import *
 import os
 
 
+# 输入窗口
 class input_GUI():
     def __init__(self):
         self.flag = 0
@@ -14,7 +15,7 @@ class input_GUI():
         self.edge_labels = []
         for i in range(5):
             for j in range(i + 1, 5):
-                self.edge_labels.append(Label(self.root, text=str(i+1) + ' -- ' + str(j+1)))
+                self.edge_labels.append(Label(self.root, text=chr(i+65) + ' -- ' + chr(j+65)))
         for i in range(10):
             self.edge_labels[i].grid(row=i*5, column=0)
 
@@ -33,7 +34,7 @@ class input_GUI():
             if cost == '':
                 cost = '999'
             self.data.append(int(cost))
-        print(self.data)
+        # print(self.data)
         s = sk.socket()
         while s.connect_ex((sk.gethostname(), 6000)) != 0:
             pass
@@ -78,6 +79,15 @@ if __name__ == '__main__':
         [INF, 11, 2, 0, INF],
         [INF, INF, INF, INF, 0]
     ]'''
+    '''
+    G = [
+        [0, INF, 2, 5, 4],
+        [INF, 0, 3, 1, INF],
+        [2, 3, 0, 3, INF],
+        [5, 1, 3, 0, 2],
+        [4, INF, INF, 2, 0]
+    ]'''
+
 
     neighbors = []
     neighbors_cost = []
