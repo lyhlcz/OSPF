@@ -397,3 +397,6 @@ venv/Scripts/python36.dll
 venv/Scripts/pythoncom36.dll
 venv/Scripts/pythonw.exe
 venv/Scripts/xlwings64.dll
+__pycache__/router.cpython-36.pyc
+__pycache__/Dijkstra.cpython-36.pyc
+__pycache__/network.cpython-36.pyc

@@ -65,4 +65,5 @@ if __name__ == "__main__":
         [INF,   2,   4, INF, INF,  INF]
     ]))
     cost, last, flag, message = G.DJ(0)
+    print(cost, last, flag)
     print(message)

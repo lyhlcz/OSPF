@@ -80,7 +80,6 @@ class router_GUI:
         for t in self.rdata[0]:
             self.table_data_Text.insert(1.0, str(t[0])+'\t'+str(t[1])+'\t'+str(t[2])+'\n')
         self.table_data_Text.insert(1.0, 'node1\tnode2\tcost\n')
-        #self.table_data_Text.insert(1.0, '拓扑表'+str(self.rdata[0])+'\n证实表'+str(self.rdata[1])+'\n试探表'+str(self.rdata[2]))
 
         # 路由表
         self.table_data_Text1 = scrolledtext.ScrolledText(self.init_window_name, width=50, height=10)
